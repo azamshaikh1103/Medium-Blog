@@ -107,14 +107,24 @@ profileRouter.delete("/delete", isLoggedIn, async (req, res) => {
     return res.status(400).json({ error: "User not having profile" });
 
   try {
-    await prisma.blog.deleteMany({
-      where: { authorId: profile.id },
-    });
-    await prisma.profile.delete({
-      where: { userId: userId },
-    });
-    await prisma.user.delete({
-      where: { id: userId },
+    await prisma.$transaction(async (prisma) => {
+      await prisma.bookmark.deleteMany({
+        where: { userId: profile.id },
+      });
+      await prisma.follows.deleteMany({
+        where: {
+          OR: [{ followeeId: profile.id }, { followerId: profile.id }],
+        },
+      });
+      await prisma.blog.deleteMany({
+        where: { authorId: profile.id },
+      });
+      await prisma.profile.delete({
+        where: { userId: userId },
+      });
+      await prisma.user.delete({
+        where: { id: userId },
+      });
     });
 
     return res.status(200).json("Account successfully deleted");
