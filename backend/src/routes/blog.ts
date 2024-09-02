@@ -143,6 +143,65 @@ blogRouter.post("/read", async (req, res) => {
   return res.status(200).json(blog);
 });
 
+blogRouter.post("/search", async (req, res) => {
+  const { searchTerm, slug } = req.body;
+
+  const blog = await prisma.blog.findMany({
+    include: { author: true },
+    orderBy: { id: "desc" },
+    where: {
+      published: true,
+      OR: [
+        {
+          headline: {
+            contains: searchTerm || slug,
+            mode: "insensitive",
+          },
+        },
+        {
+          shortDesc: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          content: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          author: {
+            OR: [
+              {
+                name: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+              {
+                shortBio: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+              {
+                about: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+        },
+      ],
+    },
+  });
+
+  if (!blog) return res.status(400).json({ error: "Blog is not available" });
+  return res.status(200).json(blog);
+});
+
 blogRouter.post("/readfrom", async (req, res) => {
   const body = req.body;
 
@@ -157,6 +216,19 @@ blogRouter.post("/readfrom", async (req, res) => {
 blogRouter.get("/readAll", async (req, res) => {
   const blog = await prisma.blog.findMany({
     where: { published: true },
+    orderBy: { id: "desc" },
+    include: { author: true },
+  });
+
+  if (!blog) return res.status(400).json({ error: "Blog is not available" });
+  return res.status(200).json(blog);
+});
+
+blogRouter.get("/random4", async (req, res) => {
+  const blog = await prisma.blog.findMany({
+    where: { published: true },
+    include: { author: true },
+    take: 4,
   });
 
   if (!blog) return res.status(400).json({ error: "Blog is not available" });
