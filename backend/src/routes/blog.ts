@@ -137,6 +137,9 @@ blogRouter.post("/read", async (req, res) => {
 
   const blog = await prisma.blog.findFirst({
     where: { id: body.id },
+    include: {
+      author: true,
+    },
   });
 
   if (!blog) return res.status(400).json({ error: "Blog is not available" });

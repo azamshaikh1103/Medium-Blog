@@ -1,4 +1,4 @@
-import { IoBookmarkOutline, IoBookmark } from "react-icons/io5";
+import { IoBookmarkOutline } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { BlogCard } from "../components/BlogCard";
 import { Navbar } from "../components/Navbar";
@@ -7,6 +7,7 @@ import axios from "axios";
 import { searchTermAtom } from "../store/atoms";
 import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
+import { AuthPopup } from "../components/AuthPopup";
 
 export const Home = () => {
   const [blogs, setBloga] = useState([]);
@@ -65,9 +66,16 @@ export const Home = () => {
     getBlogs();
   }, [searchTerm, slug]);
 
+  // const handleFollowBtn = async () => {
+  //   await axios.post("http://localhost:8000/api/v1/bookmark", { id: id });
+  // };
+
   return (
     <>
       <Navbar />
+
+      <AuthPopup />
+
       <div className=" grid grid-cols-12">
         <div className=" pl-44 h-screen overflow-y-scroll no-scrollbar pr-28 col-span-8 border-r">
           <div className=" pt-20 pb-4 border-b text-gray-600 flex gap-5 overflow-x-scroll no-scrollbar items-center">
@@ -86,6 +94,7 @@ export const Home = () => {
 
           {blogs.map((blog) => (
             <BlogCard
+              id={blog.id}
               profilePic={blog.author.profilePic}
               name={blog.author.name}
               headline={blog.headline}
@@ -111,9 +120,12 @@ export const Home = () => {
           </div>
           <div className=" mt-5 w-full flex flex-wrap gap-3">
             {recommendedTags.map((tag) => (
-              <div className=" px-5 py-2 rounded-full bg-slate-100 cursor-pointer text-sm font-medium">
+              <Link
+                to={`/tag/${tag}`}
+                className=" px-5 py-2 rounded-full bg-slate-100 cursor-pointer text-sm font-medium"
+              >
                 {tag}
-              </div>
+              </Link>
             ))}
           </div>
 
@@ -126,7 +138,10 @@ export const Home = () => {
               <div className=" my-4 w-full cursor-pointer flex items-center justify-between">
                 <div className=" flex items-center gap-3">
                   <img
-                    src={blog.author.profilePic}
+                    src={
+                      blog.author.profilePic ||
+                      "https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon"
+                    }
                     alt=""
                     className=" bg-purple-300 rounded-full"
                     width={40}
@@ -141,7 +156,14 @@ export const Home = () => {
                     </div>
                   </div>
                 </div>
-                <div className=" cursor-pointer outline outline-1 px-3 py-2 rounded-full text-xs">
+                <div
+                  onClick={async () => {
+                    await axios.post("http://localhost:8000/api/v1/bookmark", {
+                      id: blog.author.id,
+                    });
+                  }}
+                  className=" cursor-pointer outline outline-1 px-3 py-2 rounded-full text-xs"
+                >
                   Follow
                 </div>
               </div>
@@ -174,12 +196,15 @@ const TopPicks = ({
 }) => {
   return (
     <>
-      <div className=" my-3 bg-slate-50 px-3 py-2 rounded-xl cursor-pointer">
+      <div className=" my-3 hover:bg-slate-50 px-3 py-2 rounded-xl cursor-pointer">
         <div className=" flex gap-2 text-xs font-semibold text-gray-600">
           <img
-            src={dp}
+            src={
+              dp ||
+              "https://www.gravatar.com/avatar/3b3be63a4c2a439b013787725dfce802?d=identicon"
+            }
             alt=""
-            className=" bg-purple-300 rounded-full"
+            className=" rounded-full"
             width={20}
             height={20}
           />

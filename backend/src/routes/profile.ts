@@ -160,11 +160,11 @@ profileRouter.post("/follow", isLoggedIn, async (req, res) => {
     });
 
     if (!followeeProfile || !followerProfile) {
-      throw new Error("Profiles not found");
+      return res.status(400).json({ error: "Profiles not found" });
     }
 
     if (followeeProfile.id === followerProfile.id) {
-      throw new Error("Cannot follow own account");
+      return res.status(400).json({ error: "Cannot follow own account" });
     }
 
     await prisma.follows.create({
@@ -173,6 +173,8 @@ profileRouter.post("/follow", isLoggedIn, async (req, res) => {
         followeeId: followeeProfile.id,
       },
     });
+
+    console.log("Successfully followed");
 
     return res.status(200).json({ success: "Succressfully followed" });
   } catch (error) {
